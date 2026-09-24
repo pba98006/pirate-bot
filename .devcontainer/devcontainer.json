@@ -1,0 +1,9 @@
+{
+  "name": "pirate-bot",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install -r requirements.txt",
+  "secrets": {
+    "DISCORD_TOKEN": { "description": "Bot token from the Discord Developer Portal" },
+    "ANTHROPIC_API_KEY": { "description": "API key from console.anthropic.com" }
+  }
+}
