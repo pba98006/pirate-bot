@@ -8,6 +8,9 @@ Needs two environment variables:
 import os
 from collections import defaultdict, deque
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import discord
 from anthropic import AsyncAnthropic
 
@@ -30,6 +33,12 @@ bot = discord.Client(intents=intents)
 # Last 10 exchanges per channel, so the captain remembers the conversation.
 history = defaultdict(lambda: deque(maxlen=10))
 
+TIMEZONE = ZoneInfo(os.environ.get("BOT_TIMEZONE", "America/Los_Angeles"))
+
+def current_date_line() -> str:
+    # Claude has no clock, so we tell it the date on every request.
+    now = datetime.now(TIMEZONE)
+    return f"Today is {now:%A, %B %d, %Y}. The time is {now:%H:%M} ({now.tzname()})."
 
 async def ask_claude(channel_id: int, speaker: str, text: str) -> str:
     messages = []
@@ -43,7 +52,7 @@ async def ask_claude(channel_id: int, speaker: str, text: str) -> str:
     response = await claude.messages.create(
         model=MODEL,
         max_tokens=400,
-        system=SYSTEM_PROMPT,
+        system=SYSTEM_PROMPT + "\n" + current_date_line(),
         messages=messages,
     )
     reply = "".join(b.text for b in response.content if b.type == "text").strip()
